@@ -1,0 +1,18 @@
+{
+  "author": "jkrems <jan.krems@gmail.com>",
+  "name": "CrawlerSQS",
+  "description": "Crawl twitter, send data to SQS",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/marsch/streamteam-backend.git"
+  },
+  "dependencies": {
+    "aws-lib": "0.0.5"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

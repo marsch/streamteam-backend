@@ -35,21 +35,23 @@ public class TweetProcessor {
 	private static IndexWriter writer = null;
 	private static IndexReader reader = null;
 	private static IndexSearcher searcher = null;
+	private static IndexWriterConfig config = null;
+	
+	private static int pendingCommits = 0;
 
 	static {
 		try {
 			String indexDirectoryFileName = "temp/streamteam-tweetindex";
 			directory = FSDirectory.open(new File(indexDirectoryFileName));
 			Analyzer analyzer = new WhitespaceAnalyzer(Version.LUCENE_36);
-			IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,
+			config = new IndexWriterConfig(Version.LUCENE_36,
 					analyzer);
-
-			// config.setRAMBufferSizeMB(500);
 			writer = new IndexWriter(directory, config);
+			
+			// config.setRAMBufferSizeMB(500);
 			reader = IndexReader.open(directory);
 			logger.info("IndexReader has " + reader.numDocs() + " docs in it");
 			searcher = new IndexSearcher(reader);
-
 		} catch (CorruptIndexException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -69,7 +71,15 @@ public class TweetProcessor {
 			org.apache.lucene.document.Document doc = new org.apache.lucene.document.Document();
 			doc.add(new Field(TEXTFIELD, tweetText, Field.Store.YES,
 					Field.Index.ANALYZED));
+
 			writer.addDocument(doc);
+			
+			if (pendingCommits >= 100) { 
+				writer.commit();
+				pendingCommits = 0;
+			} else {
+				++pendingCommits;
+			}
 		} catch (CorruptIndexException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -113,6 +123,7 @@ public class TweetProcessor {
 				org.apache.lucene.document.Document doc = searcher
 						.doc(scoreDocs[d].doc);
 				String text = doc.get(TEXTFIELD);
+				logger.info("Splitting " + text);
 				String[] textParts = text.split(" ");
 				for (int i = 0; i < textParts.length; i++) {
 					logger.info("Retrieve itterating over part " + textParts[i] );
